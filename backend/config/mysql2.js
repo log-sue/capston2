@@ -4,8 +4,8 @@ const db_info = {
     host: 'localhost',
     port: '3306',
     user: 'root',
-    password: 'qwer1234',
-    database: 'test1'
+    password: '11!!aabb',
+    database: 'logbook'
 }
 
 module.exports = {

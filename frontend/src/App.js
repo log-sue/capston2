@@ -2,12 +2,12 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import './App.css';
 
-import { Init, Main } from './components'
+import { Init, Login, Main } from './components'
 
 function App () {
-  const [isLogin, setIsLogin] = useState(false)
-  const [timeTable, setTimeTable] = useState(null)
-
+  //app.js에서 사용하는 isLogin state 선언
+  const [isLogin, setIsLogin] = useState(false);
+  
   // check login logic
   // validate sessionId stored browser & sessionId in server
   // When verification is complete, set isLogin to true and get the timetable value
@@ -15,21 +15,21 @@ function App () {
   // Login is determined by msg, timeTable is json format data
   useEffect(() => {
     if(sessionStorage.getItem('sessionId') != null){
-      axios.post('http://172.30.1.14:4000/user/isLogin',
+      axios.post('http://localhost:4000/user/isLogin',
       {
-        'userId': sessionStorage.getItem('userId'), 
+        //서버에 저장된 userId와 sessionId를 불러옴
+        'userEmail': sessionStorage.getItem('userEmail'), 
         'sessionId': sessionStorage.getItem('sessionId')
       },
       {
         withCredentials: true
       })
       .then(res => {
-        if(res.data.msg === undefined){
+        if (res.data.msg===undefined){
           setIsLogin(true)
-          setTimeTable(res.data.timeTable);
-        } else {
+        }else{
           alert(res.data.msg)
-          sessionStorage.removeItem('id')
+          sessionStorage.removeItem('sessionId')
         }
       })
       .catch(
@@ -47,13 +47,10 @@ function App () {
     // add body class
     document.getElementById('root').className = 'text-center';
 
-    // return init
-    return <Init />;
+    // return login page
+    return <Login />;
   }
   else{
-
-    // If you are logged in, wait until the timeTable is all loaded, then put the timetable on the main page and open it.
-    if (!timeTable) return <div>Loading...</div>
 
     // select css file
     document.getElementById('style-direction').href = '/css/main.css'
@@ -62,7 +59,7 @@ function App () {
     document.getElementById('root').className = 'text-center';
 
     // return main
-    return <Main timeTable={timeTable}/>;
+    return <Main />;
   }
 
 }

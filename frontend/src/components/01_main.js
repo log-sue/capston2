@@ -1,72 +1,111 @@
-import React from 'react';
+import React , { useState } from 'react';
+import { BookRecord, MonthlyList, Login } from '.';
+import axios from 'axios';
+//여기가 bookList.js
 
 function Main(props) {
 
-    const timeTable = props.timeTable;
+    //data를 전달받지 않은 경우(처음 실행하는 경우)에만 data에서 값을 받음.
+    let today=new Date();
+
+    let year=today.getFullYear();
+    let month = today.getMonth();
+    let date=today.getDate();
+
+    const [state, setState] = useState(undefined);
+    const [bookData, setBookdata] = useState(undefined);
+    const [wtg, setWtg]=useState('main');
+
+    const init = () =>{
+        axios.post('http://172.30.1.14:4000/user/main', 
+        {
+            'id': sessionStorage.sessionId,
+            'date': today
+        }, 
+        {
+            withCredentials: true   //쿠키도 함께 서버로 req
+        })
+        .then(res => {
+            if(res.data.msg != undefined){
+                //res : bookImage, bookData 받기
+                //성공적으로 받는경우 : 화면에 display
+            } else {
+                alert(res.data.msg)
+            }
+        })
+        .catch()
+    }
+
+    const goMonthlyList = () =>{
+        setWtg('monthlyList')
+    }
+
+    const onClickNewBook = () =>{
+        setWtg('bookRecord')
+    }
+    const onclickListContent = () =>{
+        //sessionId, bookId, bookData가 같이 전달되야함
+        setWtg('bookRecord')
+    }
 
     const onLogout = () => {
         sessionStorage.removeItem('sessionId');
-        sessionStorage.removeItem('userId');
-        document.location.href = '/';
+        sessionStorage.removeItem('userEmail');
+
+        setWtg('login')
     }
 
-    return(
-        <div>
-            <header>
-                <div class="collapse bg-dark" id="navbarHeader">
-                    <div class="container">
-                    <div class="row">
-                        <div class="col-sm-8 col-md-7 py-4">
-                        <h4 class="text-white">About</h4>
-                        <p class="text-muted">Add some information about the album below, the author, or any other background context. Make it a few sentences long so folks can pick up some informative tidbits. Then, link them off to some social networking sites or contact information.</p>
-                        </div>
-                        <div class="col-sm-4 offset-md-1 py-4">
-                        <h4 class="text-white">User info</h4>
-                        <ul class="list-unstyled">
-                            <li class="text-white" >text</li>
-                            <li><a href="#" class="text-white">link</a></li>
-                            <li><a href="#" onClick={onLogout} class="text-white">Logout</a></li>
-                        </ul>
-                        </div>
-                    </div>
-                    </div>
-                </div>
-                <div class="navbar navbar-dark bg-dark shadow-sm">
-                    <div class="container">
-                    <a href="#" class="navbar-brand d-flex align-items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" aria-hidden="true" class="me-2" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                        <strong>Album</strong>
-                    </a>
-                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarHeader" aria-controls="navbarHeader" aria-expanded="false" aria-label="Toggle navigation">
-                        <span class="navbar-toggler-icon"></span>
-                    </button>
-                    </div>
-                </div>
-            </header>
+    if(wtg==='monthlyList'){
+        return(
+            <MonthlyList />
+        )
+    }else if(wtg==='bookRecord'){
+        return(
+            <BookRecord />
+        )
+    }else if(wtg==='login'){
+        return(
+            <Login/>
+        )
+    }else{
+        return(
+            //무조건 init이 먼저 실행되게 해야함. init에서 정보를 가지고 화면 표시
+            <div>
+                <button onClick={goMonthlyList}> M </button>
+                <p align="center">
+                    {year}.{month}. {date}
+                </p>
+                <table id="bookList" align="center" width="300px" height="500px">
+                    <thead>
+                        <tr>
+                            <th align="center"> book list </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>
+                            <table id="bookListContent" border="1">
+                                <tbody>
+                                    <tr>
+                                        <td rowSpan="3" width="30%" height="99px">book image</td>
+                                        <td height="33px"> book title</td>
+                                    </tr>
+                                    <tr>
+                                        <td height="33px"> author</td>
+                                    </tr>
+                                    <tr>
+                                        <td height="33px"> star</td>
+                                    </tr>
+                                </tbody>
+                            </table>    
+                        </td></tr>
+                    </tbody>
+                </table>
+                <button onClick={onClickNewBook}>new book</button>
+                <button onClick={onLogout}>logOut</button>
+            </div>
+        )
+    }
 
-
-            {/* main contents
-                ###################################################################################### 
-                ###################################################################################### */}
-                <div>
-                {Object.values(timeTable)}
-                </div>
-             {/* ###################################################################################### */}
-            
-
-
-            <footer class="text-muted py-5">
-                <div class="container">
-                    <p class="float-end mb-1">
-                    <a href="#">Back to top</a>
-                    </p>
-                    <p class="mb-1">Album example is &copy; Bootstrap, but please download and customize it for yourself!</p>
-                    <p class="mb-0">New to Bootstrap? <a href="/">Visit the homepage</a> or read our <a href="../getting-started/introduction/">getting started guide</a>.</p>
-                </div>
-            </footer>
-
-        </div>
-    )
 }
 
 export default Main;

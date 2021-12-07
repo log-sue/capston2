@@ -6,48 +6,32 @@ const router = express.Router();
 
 // isLogin, get timeTable
 router.post('/isLogin', async function(req, res, next) {
-    const connection = await pool.getConnection(async conn => conn);
-    const sql = 'SELECT timeTable FROM user WHERE id = ?';
-    const params = [req.body.userId]
-    let timeTable = null
+    
     let msg = undefined
 
     if(req.body.sessionId === req.session.id){
-        try {
-            const [rows] = await connection.query(sql, params);
-            timeTable = rows[0].timeTable;
-        } catch(err) {
-            msg = 'DB error'
-        } finally { 
-            connection.release(); 
-        }
+        msg = undefined
     } else {
         msg = 'validation failed'
     }
 
-    console.log(req.body.userId)
-    console.log(req.body.sessionId)
-    console.log(req.session.id)
-    console.log(msg)
-    console.log(timeTable)
-
-    res.send({msg: msg, timeTable: timeTable});
+    res.send({msg: msg});
 
 });
 
 // login
 router.post('/login', async function(req, res, next) {
     const connection = await pool.getConnection(async conn => conn);
-    const sql = 'SELECT passwd FROM user WHERE id = ?';
-    const params = [req.body.id]
+    const sql = 'SELECT userPw FROM user WHERE userEmail = ?';
+    const params = [req.body.email]
 
     let msg = undefined
     try {
         const [rows] = await connection.query(sql, params);
-        if (rows[0] === undefined || req.body.passwd !== rows[0].passwd){
+        if (rows[0] === undefined || req.body.userPw !== rows[0].userPw){
             msg = 'Incorrect ID or password';
         } else {
-            req.session.userId = req.body.id
+            req.session.userEmail = req.body.email;
         }
     } catch(err) {
         msg = 'DB error'
@@ -55,14 +39,14 @@ router.post('/login', async function(req, res, next) {
     } finally { 
         connection.release(); 
     }
-    res.send({msg: msg, userId: req.session.userId, sessionId: req.session.id});
+    res.send({msg: msg, userEmail: req.session.userEmail, sessionId: req.session.id});
 });
 
 // join
 router.post('/join', async function(req, res, next) {
     const connection = await pool.getConnection(async conn => conn);
     const sql = 'INSERT INTO user VALUES(?, ?, ?)';
-    const params = [req.body.id, req.body.passwd, JSON.stringify({"data":"it is init time table data"})]
+    const params = [req.body.email, req.body.passwd, req.body.name];
 
     // inserted data's id(auto_increment)
     // let insertId = results.insertId;
@@ -79,6 +63,24 @@ router.post('/join', async function(req, res, next) {
     res.send({msg: msg});
 });
 
+
+// save
+router.post('/save', async function(req, res, next) {
+    const connection = await pool.getConnection(async conn => conn);
+    const sql = 'INSERT INTO book VALUES(?, ?, ?, ?, ?, ?, ?)';
+    const params = [req.body.bookName, req.body.bookAuthor, parseFloat(req.body.bookStar), req.body.bookContent, req.body.bookImage, , ,];
+
+    let msg = undefined
+    try {
+        const [results] = await connection.query(sql, params);
+    } catch(err) {
+        msg = 'DB error'
+        console.log(err)
+    } finally { 
+        connection.release(); 
+    }
+    res.send({msg: msg});
+});
 
 // logout
 // router.get("/logout", function(req,res){
